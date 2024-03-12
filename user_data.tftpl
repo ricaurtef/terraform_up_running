@@ -1,0 +1,11 @@
+#! /usr/bin/env bash
+# user_data: Bootstrap configuration script.
+
+
+main() {
+    echo 'Hello, world!' > index.html
+    nohup busybox httpd -f -p ${server_port} &
+}
+
+
+main "$@"
