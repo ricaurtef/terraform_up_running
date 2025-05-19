@@ -1,15 +1,14 @@
-locals {
-  has_min_length = length(var.db_main_password) >= 10
-  has_uppercase  = length(regexall("[A-Z]", var.db_main_password)) > 0
-  has_lowercase  = length(regexall("[a-z]", var.db_main_password)) > 0
-  has_number     = length(regexall("[0-9]", var.db_main_password)) > 0
-  has_special    = length(regexall("[^a-zA-Z0-9]", var.db_main_password)) > 0
+variable "db_name" {
+  description = "The name of the database."
+  type        = string
+  default     = null
 }
 
 variable "db_main_username" {
   description = "The main database username."
   type        = string
   sensitive   = true
+  default     = null
 
   validation {
     condition = (
@@ -27,6 +26,7 @@ variable "db_main_password" {
   description = "The main database password."
   type        = string
   sensitive   = true
+  default     = null
 
   validation {
     condition = (
@@ -46,3 +46,28 @@ variable "db_main_password" {
   }
 }
 
+variable "backup_retention_period" {
+  description = "Days to retain backups. Must be > 0 to enable replication."
+  type        = number
+  default     = null
+}
+
+variable "replicate_source_db" {
+  description = "If specified, replicate the RDS database at the given ARN."
+  type        = string
+  default     = null
+
+  validation {
+    condition = (
+      var.replicate_source_db == null ||
+      can(regex(
+        "^arn:(aws|aws-cn|aws-us-gov):rds:[a-z0-9-]+:[0-9]{12}:db:[a-zA-Z0-9-]+$",
+        var.replicate_source_db
+      ))
+    )
+    error_message = <<-EOT
+    If set, replicate_source_db must be a valid RDS instance ARN, for example:
+    arn:aws:rds:us-east-1:123456789012:db:my-db-instance
+    EOT
+  }
+}
